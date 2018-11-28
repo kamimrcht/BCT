@@ -1,10 +1,9 @@
 
 
-
 # ***************************************************************************
 #
-#							   Btt:
-#				 Short reads corrector de Bruijn graph based
+#							   Bct:
+#				de Bruijn graph based Short reads corrector for transcriptomic
 #
 #
 #
@@ -14,10 +13,12 @@
 
 
 
+debug_mode=0
+
 
 
 def printCommand(cmd,pc=True):
-	if pc:
+	if (pc and debug_mode!=0):
 		print(cmd,flush=True)
 
 # get the platform
@@ -27,7 +28,7 @@ def getPlatform():
 	elif sys.platform == "darwin":
 		return "OSX"
 	else:
-		print("[ERROR] Btt is not compatible with Windows.")
+		print("[ERROR] Bct is not compatible with Windows.")
 		sys.exit(1);
 
 
@@ -50,7 +51,7 @@ def checkReadFiles(readfiles):
 		dieToFatalError("One or more read files do not exist.")
 
 
-# check if files written by Btt are present
+# check if files written by Bct are present
 def checkWrittenFiles(files):
 	allFilesAreOK = True
 	if not os.path.isfile(files):
@@ -64,7 +65,7 @@ def checkWrittenFiles(files):
 # to return if an error makes the run impossible
 def dieToFatalError (msg):
   print("[FATAL ERROR] " + msg)
-  print("Try `Btt --help` for more information")
+  print("Try `Bct --help` for more information")
   sys.exit(1);
 
 
@@ -88,7 +89,7 @@ def printWarningMsg(msg):
 #			   graph generation with BCALM + BTRIM + BGREAT
 # ############################################################################
 
-def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, unitigCoverage, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES):
+def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES):
 	try:
 		inputBcalm=fileBcalm
 		print("\n" + getTimestamp() + "--> Building the graph...",flush=True)
@@ -99,7 +100,7 @@ def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 		logTipsToWrite = open(logTips, 'w')
 		logBgreat = "logBgreat"
 		logBgreatToWrite = open(logBgreat, 'w')
-		#~ os.chdir(Btt_MAIN)
+		#~ os.chdir(Bct_MAIN)
 		os.chdir(OUT_DIR)
 		coreUsed = "20" if nb_cores == 0 else str(nb_cores)
 
@@ -108,7 +109,7 @@ def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 		else:
 			print("\t#Graph  dbg" + str(kmerSize)+".fa: Construction... ", flush=True)
 			# BCALM
-			cmd=Btt_INSTDIR + "/bcalm -max-memory 10000 -in " + OUT_DIR + "/" + inputBcalm + " -kmer-size " + str(kmerSize) + " -abundance-min " + str(solidity) + " -out " + OUT_DIR + "/out " + " -nb-cores " + coreUsed
+			cmd=Bct_INSTDIR + "/bcalm -max-memory 10000 -in " + OUT_DIR + "/" + inputBcalm + " -kmer-size " + str(kmerSize) + " -abundance-min " + str(solidity) + " -out " + OUT_DIR + "/out " + " -nb-cores " + coreUsed
 
 			printCommand( "\t\t"+cmd)
 			p = subprocessLauncher(cmd, logBcalmToWrite, logBcalmToWrite)
@@ -119,7 +120,7 @@ def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
 			# BTRIM
-			cmd=Btt_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(2*int(kmerSize-1))+" -T 3 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -f "+str(unitigCoverage)
+			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a 10 -l 5"
 			printCommand("\t\t\t"+cmd)
 			p = subprocessLauncher(cmd, logTipsToWrite, logTipsToWrite)
 			for filename in glob.glob(OUT_DIR + "/out.*"):
@@ -130,12 +131,12 @@ def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			# Read Mapping
 			print("\t#Read mapping with BGREAT... ", flush=True)
 			# BGREAT
-			cmd=Btt_INSTDIR + "/bgreat -k " + str(kmerSize) + "  -u original_reads.fa -g dbg" + str(kmerSize) + ".fa -t " + coreUsed + " -a "+str(aSize)+" -o "+str(maximumOccurence)+" -i "+str(subsambleAnchor)+" -m "+str(missmatchAllowed)+" -c -O -f reads_corrected.fa -e "+str(mappingEffort)
+			cmd=Bct_INSTDIR + "/bgreat -k " + str(kmerSize) + "  -u original_reads.fa -g dbg" + str(kmerSize) + ".fa -t " + coreUsed + " -a "+str(aSize)+" -o "+str(maximumOccurence)+" -i "+str(subsambleAnchor)+" -m "+str(missmatchAllowed)+" -c -O -f reads_corrected.fa -e "+str(mappingEffort)
 			printCommand("\t\t"+cmd)
 			p = subprocessLauncher(cmd, logBgreatToWrite, logBgreatToWrite)
 			checkWrittenFiles(OUT_DIR + "/reads_corrected.fa")
 
-		os.chdir(Btt_MAIN)
+		os.chdir(Bct_MAIN)
 
 		print(getTimestamp() + "--> Done!")
 		return {'kmerSize': kmerSize}
@@ -155,36 +156,34 @@ def graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 def main():
 
 	wholeT = time.time()
-	print("\n*** This is Btt - de Bruin graph based corrector  ***\n")
-	Btt_MAIN = os.path.dirname(os.path.realpath(__file__))
-	print("Binaries are in: " + Btt_INSTDIR)
+	print("\n*** This is Bct - de Bruin graph based corrector for transcriptomic  ***\n")
+	Bct_MAIN = os.path.dirname(os.path.realpath(__file__))
+	print("Binaries are in: " + Bct_INSTDIR)
 
 	# ========================================================================
 	#						 Manage command line arguments
 	# ========================================================================
-	parser = argparse.ArgumentParser(description='Btt - De Bruijn graph based read corrector ')
+	parser = argparse.ArgumentParser(description='Bct - De Bruijn graph based read corrector ',formatter_class=argparse.RawTextHelpFormatter)
 
 	# ------------------------------------------------------------------------
 	#							 Define allowed options
 	# ------------------------------------------------------------------------
-	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help="input fasta read files. Several read files must be concatenated\n")
+	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help="(MANDATORY) Input fasta read files. Several read files must be concatenated\n \n")
+	parser.add_argument('-o', action="store", dest="out_dir",				type=str,	default=os.getcwd(),	help="Path to store the results (default = current directory)")
+	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="Number of cores used (default max)")
 
-	parser.add_argument('-k', action="store", dest="kSize",					type=int,	default = 31,	help="an integer,  k-mer size (default 31)")
-	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="an integer, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)")
-	parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
-	parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
-	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="index one out of i anchors (default 1)")
-	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="maximum occurence of an anchor (default 8)\n")
-	parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
-	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 10,	help="missmatch allowed in mapping (default 10)")
+	parser.add_argument('-k', action="store", dest="kSize",					type=int,	default = 31,	help="k-mer size (default 31)")
+	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)\n \n")
+	#~ parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
+	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
+	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
+	#~ parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 10,	help="missmatch allowed in mapping (default 10)")
+	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="(ADVANCED) index one out of i anchors (default 1)")
+	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="(ADVANCED) maximum occurence of an anchor (default 8)\n")
+	parser.add_argument('-d', action="store", dest="DEBUG",				type=int,	default = 0,	help="(ADVANCED) Print command lines\n \n")
 
 
-
-
-	parser.add_argument('-o', action="store", dest="out_dir",				type=str,	default=os.getcwd(),	help="path to store the results (default = current directory)")
-	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="number of cores used (default max)")
-
-	parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
+	#~ parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
 
 
 	# ------------------------------------------------------------------------
@@ -196,6 +195,7 @@ def main():
 	#				  Print command line
 	# ------------------------------------------------------------------------
 	print("The command line was: " + ' '.join(sys.argv))
+	global debug_mode
 
 
 	# ------------------------------------------------------------------------
@@ -203,14 +203,14 @@ def main():
 	# ------------------------------------------------------------------------
 	kSize				= options.kSize
 	min_cov				= options.min_cov
-	aSize				= options.aSize
+	aSize				= 21
 	nb_cores			= options.nb_cores
-	mappingEffort		= options.mapping_Effort
-	unitigCoverage		= options.unitig_Coverage
-	missmatchAllowed		= options.missmatch_allowed
+	mappingEffort		= 1000
+	#~ unitigCoverage		= options.unitig_Coverage
+	missmatchAllowed		= 10
 	maximumOccurence		= options.maximum_occurence
 	subsambleAnchor		= options.subsamble_anchor
-
+	debug_mode		= options.DEBUG
 	# ------------------------------------------------------------------------
 	#				Create output dir and log files
 	# ------------------------------------------------------------------------
@@ -219,7 +219,7 @@ def main():
 		if not os.path.exists(OUT_DIR):
 			os.mkdir(OUT_DIR)
 		else:
-			printWarningMsg(OUT_DIR + " directory already exists, Btt will use it.")
+			printWarningMsg(OUT_DIR + " directory already exists, Bct will use it.")
 
 		outName = OUT_DIR.split("/")[-1]
 		OUT_DIR = os.path.dirname(os.path.realpath(OUT_DIR)) + "/" + outName
@@ -227,12 +227,12 @@ def main():
 		if not os.path.exists(OUT_LOG_FILES):
 			os.mkdir(OUT_LOG_FILES)
 		parametersLog = open(OUT_DIR + "/ParametersUsed.txt", 'w');
-		parametersLog.write("kSize:%s	k-mer_solidity:%s	unitig_solidity:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s maximum_occurence:%s subsample_anchor:%s\n " %(kSize, min_cov, unitigCoverage,aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor))
+		parametersLog.write("kSize:%s	k-mer_solidity:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s maximum_occurence:%s subsample_anchor:%s\n " %(kSize, min_cov,aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor))
 		parametersLog.close()
 
 		print("Results will be stored in: ", OUT_DIR)
 	except:
-		print("Could not write in out directory :", sys.exc_info()[0])
+		print("Could not write in out directory 1:", sys.exc_info()[0])
 		dieToFatalError('')
 
 	# ------------------------------------------------------------------------
@@ -241,7 +241,7 @@ def main():
 	try:
 		bankBcalm = open(OUT_DIR + "/bankBcalm.txt", 'w');
 	except:
-		print("Could not write in out directory :", sys.exc_info()[0])
+		print("Could not write in out directory 2:", sys.exc_info()[0])
 
 	# check if the given paired-end read files indeed exist
 	paired_readfiles = None
@@ -265,8 +265,9 @@ def main():
 		errorReadFile *= 1
 
 	if errorReadFile:
-		parser.print_usage()
-		dieToFatalError("Btt requires at least a read file")
+		#~ parser.print_usage()
+		parser.print_help()
+		dieToFatalError("Bct requires at least a read file")
 
 	bloocooArg = ""
 	bgreatArg = ""
@@ -301,7 +302,7 @@ def main():
 	cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads.fa"
 	printCommand("\t\t\t"+cmd)
 	p = subprocessLauncher(cmd)
-	os.chdir(Btt_MAIN)
+	os.chdir(Bct_MAIN)
 
 
 
@@ -309,7 +310,7 @@ def main():
 	#						   Graph construction and cleaning
 	# ------------------------------------------------------------------------
 	t = time.time()
-	valuesGraph = graphConstruction(Btt_MAIN, Btt_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, unitigCoverage, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES)
+	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES)
 	print(printTime("Correction took: ", time.time() - t))
 
 

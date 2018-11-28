@@ -7,7 +7,7 @@
 
 
 function help {
-echo "Btt installation script"
+echo "Bct installation script"
 echo "This installation requires GCC>=4.9, GIT, MAKE and CMAKE3"
 echo "-f absolute path of folder to put the binaries"
 echo "-t to use multiple thread for compilation (default 8)"
@@ -32,7 +32,7 @@ f)
 echo "use folder: $OPTARG" >&2
 folder=$OPTARG
 ;;
-s)
+t)
 echo "use  $OPTARG threads" >&2
 threadNumber=$OPTARG
 ;;
@@ -58,10 +58,10 @@ mkdir $folder;
 echo "I put binaries in $folder";
 
 
-cat src/btt_header.py>Btt.py
-echo "Btt_INSTDIR = (\"$folder\")" >> Btt.py
-cat src/btt_broken.py>>Btt.py
-chmod +x Btt.py
+cat src/bct_header.py>Bct.py
+echo "Bct_INSTDIR = (\"$folder\")" >> Bct.py
+cat src/bct_broken.py>>Bct.py
+chmod +x Bct.py
 
 
 
