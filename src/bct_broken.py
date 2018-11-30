@@ -1,5 +1,6 @@
 
 
+
 # ***************************************************************************
 #
 #							   Bct:
@@ -89,7 +90,7 @@ def printWarningMsg(msg):
 #			   graph generation with BCALM + BTRIM + BGREAT
 # ############################################################################
 
-def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES):
+def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES):
 	try:
 		inputBcalm=fileBcalm
 		print("\n" + getTimestamp() + "--> Building the graph...",flush=True)
@@ -120,7 +121,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
 			# BTRIM
-			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a 10 -l 5"
+			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a "+str(alpha)+" -l "+str(low)
 			printCommand("\t\t\t"+cmd)
 			p = subprocessLauncher(cmd, logTipsToWrite, logTipsToWrite)
 			for filename in glob.glob(OUT_DIR + "/out.*"):
@@ -173,7 +174,9 @@ def main():
 	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="Number of cores used (default max)")
 
 	parser.add_argument('-k', action="store", dest="kSize",					type=int,	default = 31,	help="k-mer size (default 31)")
-	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)\n \n")
+	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)")
+	parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
+	parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n \n")
 	#~ parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
@@ -208,6 +211,8 @@ def main():
 	mappingEffort		= 1000
 	#~ unitigCoverage		= options.unitig_Coverage
 	missmatchAllowed		= 10
+	alpha= options.relative_threshold
+	low= options.low_threshold
 	maximumOccurence		= options.maximum_occurence
 	subsambleAnchor		= options.subsamble_anchor
 	debug_mode		= options.DEBUG
@@ -310,7 +315,7 @@ def main():
 	#						   Graph construction and cleaning
 	# ------------------------------------------------------------------------
 	t = time.time()
-	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor, OUT_LOG_FILES)
+	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES)
 	print(printTime("Correction took: ", time.time() - t))
 
 
