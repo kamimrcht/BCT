@@ -1,19 +1,4 @@
 
-
-
-# ***************************************************************************
-#
-#							   Bct:
-#				de Bruijn graph based Short reads corrector for transcriptomic
-#
-#
-#
-# ***************************************************************************
-
-# ############################################################################
-
-
-
 debug_mode=0
 
 
@@ -90,7 +75,7 @@ def printWarningMsg(msg):
 #			   graph generation with BCALM + BTRIM + BGREAT
 # ############################################################################
 
-def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES):
+def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES,bgreatArg):
 	try:
 		inputBcalm=fileBcalm
 		print("\n" + getTimestamp() + "--> Building the graph...",flush=True)
@@ -116,7 +101,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			p = subprocessLauncher(cmd, logBcalmToWrite, logBcalmToWrite)
 			checkWrittenFiles(OUT_DIR + "/out.unitigs.fa")
 			for filename in glob.glob(OUT_DIR + "/trashme*"):
-				os.remove(filename)
+				os.removedirs(filename)
 
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
@@ -132,7 +117,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			# Read Mapping
 			print("\t#Read mapping with BGREAT... ", flush=True)
 			# BGREAT
-			cmd=Bct_INSTDIR + "/bgreat -k " + str(kmerSize) + "  -u original_reads.fa -g dbg" + str(kmerSize) + ".fa -t " + coreUsed + " -a "+str(aSize)+" -o "+str(maximumOccurence)+" -i "+str(subsambleAnchor)+" -m "+str(missmatchAllowed)+" -c -O -f reads_corrected.fa -e "+str(mappingEffort)
+			cmd=Bct_INSTDIR + "/bgreat -k " + str(kmerSize) + "  "+bgreatArg+" -g dbg" + str(kmerSize) + ".fa -t " + coreUsed + " -a "+str(aSize)+" -o "+str(maximumOccurence)+" -i "+str(subsambleAnchor)+" -m "+str(missmatchAllowed)+" -c -O -f reads_corrected.fa -e "+str(mappingEffort)
 			printCommand("\t\t"+cmd)
 			p = subprocessLauncher(cmd, logBgreatToWrite, logBgreatToWrite)
 			checkWrittenFiles(OUT_DIR + "/reads_corrected.fa")
@@ -169,7 +154,8 @@ def main():
 	# ------------------------------------------------------------------------
 	#							 Define allowed options
 	# ------------------------------------------------------------------------
-	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help="(MANDATORY) Input fasta read files. Several read files must be concatenated\n \n")
+	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help=" Input fasta read files. Several read files must be concatenated\n \n")
+	parser.add_argument("-x", action="store", dest="paired_readfiles",		type=str,					help=" Input fasta Interleaved paired-end read files. Several read files must be concatenated\n \n")
 	parser.add_argument('-o', action="store", dest="out_dir",				type=str,	default=os.getcwd(),	help="Path to store the results (default = current directory)")
 	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="Number of cores used (default max)")
 
@@ -243,17 +229,25 @@ def main():
 	# ------------------------------------------------------------------------
 	#				  Parse input read options
 	# ------------------------------------------------------------------------
+	errorReadFile=1
 	try:
 		bankBcalm = open(OUT_DIR + "/bankBcalm.txt", 'w');
 	except:
 		print("Could not write in out directory 2:", sys.exc_info()[0])
 
 	# check if the given paired-end read files indeed exist
-	paired_readfiles = None
-	single_readfiles = None
-	errorReadFile = 0
-	paired_readfiles = None
-	errorReadFile = 1
+	if options.paired_readfiles:
+		paired_readfiles = ''.join(options.paired_readfiles)
+		try:
+			paired_readfiles = os.path.abspath(paired_readfiles)
+			checkReadFiles(options.paired_readfiles)
+			errorReadFile *= 0
+		except:
+			paired_readfiles = None
+			errorReadFile *= 1
+	else:
+		paired_readfiles = None
+		errorReadFile *= 1
 
 	# check if the given single-end read files indeed exist
 	if options.single_readfiles:
@@ -274,40 +268,47 @@ def main():
 		parser.print_help()
 		dieToFatalError("Bct requires at least a read file")
 
-	bloocooArg = ""
 	bgreatArg = ""
 	paired = '' if paired_readfiles is None else str(paired_readfiles)
 	single = '' if single_readfiles is None else str(single_readfiles)
 	both = paired + "," + single
 
 
-
+	os.chdir(OUT_DIR)
 	if single_readfiles is not None and paired_readfiles is not None:  # paired end + single end
 		fileCase = 3
-		bankBcalm.write(OUT_DIR + "/reads_corrected1.fa\n" + OUT_DIR + "/reads_corrected2.fa\n")
+		cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
+		printCommand("\t\t\t"+cmd)
+		p = subprocessLauncher(cmd)
+		cmd="ln -fs " + paired_readfiles + " " + OUT_DIR + "/original_reads_paired.fa"
+		printCommand("\t\t\t"+cmd)
+		p = subprocessLauncher(cmd)
+		bankBcalm.write(OUT_DIR + "/original_reads_single.fa\n" + OUT_DIR + "/original_reads_paired.fa\n")
+		bgreatArg="-u original_reads_single.fa -x original_reads_paired.fa"
 	elif single_readfiles is None:	# paired end only
 		fileCase = 1
-		bankBcalm.write(OUT_DIR + "/original_reads.fa\n")
+		cmd="ln -fs " + paired_readfiles + " " + OUT_DIR + "/original_reads_paired.fa"
+		printCommand("\t\t\t"+cmd)
+		p = subprocessLauncher(cmd)
+		bankBcalm.write(OUT_DIR + "/original_reads_paired.fa\n")
+		bgreatArg=" -x original_reads_paired.fa "
+
 	else:  # single end only
+		cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
+		printCommand("\t\t\t"+cmd)
+		p = subprocessLauncher(cmd)
 		fileCase = 2
-		bankBcalm.write(OUT_DIR + "/original_reads.fa\n")
+		bankBcalm.write(OUT_DIR + "/original_reads_single.fa\n")
+		bgreatArg="- u original_reads_single.fa "
+
 	# bankBcalm.write(OUT_DIR + "lost_unitig.fa")
 	bankBcalm.close()
+	os.chdir(Bct_MAIN)
+
 
 	# ========================================================================
 	#									RUN
 	# ========================================================================
-
-
-	# ------------------------------------------------------------------------
-	#						   Kmer size selection
-	# ------------------------------------------------------------------------
-	t = time.time()
-	os.chdir(OUT_DIR)
-	cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads.fa"
-	printCommand("\t\t\t"+cmd)
-	p = subprocessLauncher(cmd)
-	os.chdir(Bct_MAIN)
 
 
 
@@ -315,7 +316,7 @@ def main():
 	#						   Graph construction and cleaning
 	# ------------------------------------------------------------------------
 	t = time.time()
-	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES)
+	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES,bgreatArg)
 	print(printTime("Correction took: ", time.time() - t))
 
 
