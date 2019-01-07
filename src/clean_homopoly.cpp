@@ -126,19 +126,29 @@ void clean(string& str){
 
 int main(int argc, char ** argv){
 	if(argc<2){
-		cout<<"[Fasta file] (homo size)"<<endl;
+		cout<<"[Fasta file] (out file) (homo size) (backup file)"<<endl;
 		exit(0);
 	}
 	string input(argv[1]);
 	bool cleaning(true);
 	uint min_size(0);
+	string out_file("clean_reads.fa");
+	string recover_file("Arecover");
 	if(argc>2){
-		min_size=(stoi(argv[2]));
+		out_file=((argv[2]));
 	}
+	if(argc>3){
+		min_size=(stoi(argv[3]));
+	}
+	if(argc>4){
+		recover_file=((argv[4]));
+	}
+
 	srand (time(NULL));
 	string header, sequence,line;
 	ifstream in(input);
-	ofstream out("Arecover");
+	ofstream out_backup(recover_file);
+	ofstream out_clean(out_file);
 	string tmp_output;
 	while(not in.eof()){
 		getline(in,header);
@@ -153,10 +163,10 @@ int main(int argc, char ** argv){
 			clean(sequence);
 
 			sequence=clean_homo(sequence,min_size,0,tmp_output);
-			out<<tmp_output<<"\n";
+			out_backup<<tmp_output<<"\n";
 			tmp_output="";
 			//~ if(sequence.size()>min_size){
-			cout<<header<<'\n'<<sequence<<"\n";
+			out_clean<<header<<'\n'<<sequence<<"\n";
 			//~ }
 		}else{
 

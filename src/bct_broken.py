@@ -1,4 +1,20 @@
 
+
+
+
+# ***************************************************************************
+#
+#							   Bct:
+#				de Bruijn graph based Short reads corrector for transcriptomic
+#
+#
+#
+# ***************************************************************************
+
+# ############################################################################
+
+
+
 debug_mode=0
 
 
@@ -162,7 +178,9 @@ def main():
 	parser.add_argument('-k', action="store", dest="kSize",					type=int,	default = 31,	help="k-mer size (default 31)")
 	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)")
 	parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
-	parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n \n")
+	parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n")
+	parser.add_argument('-c', action="store", dest="remove_poly",				type=int,	default = True,	help="Polymer tails removed before correction (default True)\n \n")
+	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = True,	help="Polymer tails removed reinjected after correction (default True)\n \n")
 	#~ parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
@@ -202,6 +220,8 @@ def main():
 	maximumOccurence		= options.maximum_occurence
 	subsambleAnchor		= options.subsamble_anchor
 	debug_mode		= options.DEBUG
+	clean_homopolymer		= options.remove_poly
+	poly_injection		= options.readd_poly
 	# ------------------------------------------------------------------------
 	#				Create output dir and log files
 	# ------------------------------------------------------------------------
@@ -294,12 +314,15 @@ def main():
 		bgreatArg=" -x original_reads_paired.fa "
 
 	else:  # single end only
-		cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
+		if(not clean_homopolymer):
+			cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
+		else:
+			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 3 "+OUT_DIR + "/Arecover "
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
 		fileCase = 2
 		bankBcalm.write(OUT_DIR + "/original_reads_single.fa\n")
-		bgreatArg="- u original_reads_single.fa "
+		bgreatArg="-u original_reads_single.fa "
 
 	# bankBcalm.write(OUT_DIR + "lost_unitig.fa")
 	bankBcalm.close()
@@ -317,7 +340,12 @@ def main():
 	# ------------------------------------------------------------------------
 	t = time.time()
 	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES,bgreatArg)
+	if(poly_injection):
+		cmd=Bct_INSTDIR+"/recover_tail "+OUT_DIR + "/reads_corrected.fa "+ OUT_DIR + "/Arecover "+OUT_DIR + "/reads_corrected_final.fa"
+		printCommand("\t\t\t"+cmd)
+		p = subprocessLauncher(cmd)
 	print(printTime("Correction took: ", time.time() - t))
+
 
 
 

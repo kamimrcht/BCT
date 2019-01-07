@@ -57,11 +57,15 @@ if [ -z "$folder"  ]; then
 mkdir $folder;
 echo "I put binaries in $folder";
 
+cd src;
+make
 
-cat src/bct_header.py>Bct.py
-echo "Bct_INSTDIR = (\"$folder\")" >> Bct.py
-cat src/bct_broken.py>>Bct.py
-chmod +x Bct.py
+cat bct_header.py>../Bct.py
+echo "Bct_INSTDIR = (\"$folder\")" >> ../Bct.py
+cat bct_broken.py>>../Bct.py
+chmod +x ../Bct.py
+cp recover_tail $folder;
+cp clean_homopoly $folder;
 
 
 
