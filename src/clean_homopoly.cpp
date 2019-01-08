@@ -35,9 +35,9 @@ string clean_prefix(string str,uint min_length,uint max_missmatch,string& output
 	}
 	if(prefix_length>min_length){
 		//~ cout<<str<<endl;
-		output+=str.substr(0,i);
+		output+=str.substr(0,i-1);
 		//~ cout<<output<<endl;
-		str=str.substr(i);
+		str=str.substr(i+1);
 		//~ cout<<str<<endl;
 	}
 	return str;
