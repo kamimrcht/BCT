@@ -35,10 +35,14 @@ string clean_prefix(string str,uint min_length,uint max_missmatch,string& output
 	}
 	if(prefix_length>min_length){
 		//~ cout<<str<<endl;
-		output+=str.substr(0,i-1);
+		output+=str.substr(0,i);
 		//~ cout<<output<<endl;
-		str=str.substr(i+1);
+		str=str.substr(i);
 		//~ cout<<str<<endl;
+	}
+	if(str.size()==0){
+		str+=output[0];
+		output=output.substr(1);
 	}
 	return str;
 }
