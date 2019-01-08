@@ -121,6 +121,7 @@ void clean(string& str){
 			case 'G':break;
 			case 't':break;
 			case 'T':break;
+			case 'N':break;
 			default: str="";return;
 		}
 	}
@@ -156,25 +157,19 @@ int main(int argc, char ** argv){
 	string tmp_output;
 	while(not in.eof()){
 		getline(in,header);
-		if(header[0]!='>'){continue;}
 		char c=in.peek();
 		while(c!='>' and c!=EOF){
 			getline(in,line);
 			sequence+=line;
 			c=in.peek();
 		}
-		if(cleaning){
-			clean(sequence);
-
+		clean(sequence);
+		if(sequence.size()!=0){
 			sequence=clean_homo(sequence,min_size,0,tmp_output);
 			out_backup<<tmp_output<<"\n";
 			tmp_output="";
-			//~ if(sequence.size()>min_size){
 			out_clean<<header<<'\n'<<sequence<<"\n";
-			//~ }
-		}else{
-
+			sequence="";
 		}
-		sequence="";
 	}
 }
