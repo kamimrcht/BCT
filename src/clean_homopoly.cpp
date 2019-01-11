@@ -18,10 +18,10 @@ string main_nuc(const string& str){
 		if(str[i]=='T'){Tcount++;}
 	}
 	if(Acount>Tcount){
-		string result('A',str.size());
+		string result(str.size(),'A');
 		return result;
 	}else{
-		string result('T',str.size());
+		string result(str.size(),'T');
 		return result;
 	}
 	cout<<"Problem"<<endl;
