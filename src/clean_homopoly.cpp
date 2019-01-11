@@ -113,6 +113,7 @@ string clean_suffix(string str,uint min_length,uint max_missmatch,string& output
 
 
 string clean_homo(string str, uint min_length, uint max_missmatch, string& output){
+	//~ cout<<"go"<<endl;
 	str=clean_prefix(str,min_length,max_missmatch,output);
 	output+="$";
 	if(str.size()<min_length){
@@ -191,8 +192,8 @@ int main(int argc, char ** argv){
 		}
 		//WE CLEAN THE SEQ
 		clean(sequence);
-		if(sequence.size()<5){
-			sequence=clean_homo(sequence,min_size,1,tmp_output);
+		if(sequence.size()>5){
+			sequence=clean_homo(sequence,min_size,0,tmp_output);
 			out_backup<<tmp_output<<"\n";
 			tmp_output="";
 			out_clean<<header<<'\n'<<sequence<<"\n";
