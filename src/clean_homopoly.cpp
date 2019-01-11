@@ -11,9 +11,33 @@ using namespace std;
 
 
 
+string main_nuc(const string& str){
+	uint Acount(0),Tcount(0);
+	for(uint i(0);i<str.size();++i){
+		if(str[i]=='A'){Acount++;}
+		if(str[i]=='T'){Tcount++;}
+	}
+	if(Acount>Tcount){
+		string result('A',str.size());
+		return result;
+	}else{
+		string result('T',str.size());
+		return result;
+	}
+	cout<<"Problem"<<endl;
+	return str;
+}
+
+
 string clean_prefix(string str,uint min_length,uint max_missmatch,string& output){
-	//~ cout<<"PREFIX"<<endl;
 	char c(str[0]);
+	if(c!='A' and c!='T'){
+		if(max_missmatch==0){
+			return str;
+		}else{
+			return clean_prefix(str,min_length,max_missmatch-1,output);
+		}
+	}
 	uint prefix_length(1);
 	uint i(1);
 	uint miss(0);
@@ -34,11 +58,8 @@ string clean_prefix(string str,uint min_length,uint max_missmatch,string& output
 		prefix_length-=con_match+1;
 	}
 	if(prefix_length>min_length){
-		//~ cout<<str<<endl;
-		output+=str.substr(0,i);
-		//~ cout<<output<<endl;
+		output+=main_nuc(str.substr(0,i));
 		str=str.substr(i);
-		//~ cout<<str<<endl;
 	}
 	if(str.size()==0){
 		str+=output[0];
@@ -50,12 +71,18 @@ string clean_prefix(string str,uint min_length,uint max_missmatch,string& output
 
 
 string clean_suffix(string str,uint min_length,uint max_missmatch,string& output){
-	//~ cout<<"SUFFIX"<<endl;
 	uint j(1);
 	uint suffix_length(1);
 	uint miss(0);
 	uint con_match(0);
 	char c=(str[str.size()-1]);
+	if(c!='A' and c!='T'){
+		if(max_missmatch==0){
+			return str;
+		}else{
+			return clean_suffix(str,min_length,max_missmatch-1,output);
+		}
+	}
 	for(;j< str.size();++j){
 		if(str[str.size()-1-j]==c){
 			suffix_length++;
@@ -71,28 +98,27 @@ string clean_suffix(string str,uint min_length,uint max_missmatch,string& output
 		suffix_length-=con_match+1;
 	}
 	if(suffix_length>min_length){
-		//~ cout<<suffix_length<<" "<<min_length<<endl;
-		//~ cout<<str<<endl;
-
 		output+=str.substr(str.size()-j);
-		//~ cout<<output<<endl;
 		str=str.substr(0,str.size()-j);
-		//~ cout<<str<<endl;
 	}
+
+	if(str.size()==0){
+		str+=output[0];
+		output=output.substr(1);
+	}
+
 	return str;
 }
 
 
 
-string clean_homo(string str,uint min_length,uint max_missmatch,string& output){
+string clean_homo(string str, uint min_length, uint max_missmatch, string& output){
 	str=clean_prefix(str,min_length,max_missmatch,output);
 	output+="$";
-	if(str.size()==0){
-		return "";
+	if(str.size()<min_length){
+		return str;
 	}
-
 	str=clean_suffix(str,min_length,max_missmatch,output);
-	//~ cout<<output<<endl;
 	return str;
 }
 
@@ -163,9 +189,10 @@ int main(int argc, char ** argv){
 			sequence+=line;
 			c=in.peek();
 		}
+		//WE CLEAN THE SEQ
 		clean(sequence);
-		if(sequence.size()!=0){
-			sequence=clean_homo(sequence,min_size,0,tmp_output);
+		if(sequence.size()<5){
+			sequence=clean_homo(sequence,min_size,1,tmp_output);
 			out_backup<<tmp_output<<"\n";
 			tmp_output="";
 			out_clean<<header<<'\n'<<sequence<<"\n";
