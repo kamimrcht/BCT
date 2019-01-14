@@ -1,7 +1,3 @@
-
-
-
-
 # ***************************************************************************
 #
 #							   Bct:
@@ -91,7 +87,7 @@ def printWarningMsg(msg):
 #			   graph generation with BCALM + BTRIM + BGREAT
 # ############################################################################
 
-def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES,bgreatArg):
+def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low,high, OUT_LOG_FILES,bgreatArg):
 	try:
 		inputBcalm=fileBcalm
 		print("\n" + getTimestamp() + "--> Building the graph...",flush=True)
@@ -122,7 +118,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
 			# BTRIM
-			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a "+str(alpha)+" -l "+str(low)
+			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a "+str(alpha)+" -l "+str(low)+" -L "+str(high)
 			printCommand("\t\t\t"+cmd)
 			p = subprocessLauncher(cmd, logTipsToWrite, logTipsToWrite)
 			for filename in glob.glob(OUT_DIR + "/out.*"):
@@ -179,8 +175,9 @@ def main():
 	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)")
 	parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
 	parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n")
+	parser.add_argument('-L', action="store", dest="high_threshold",				type=int,	default = 20,	help="Unitigs whith abundance superior to L are kept no matter what (default 20)\n")
 	parser.add_argument('-c', action="store", dest="remove_poly",				type=int,	default = True,	help="Polymer tails removed before correction (default True)\n \n")
-	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = True,	help="Polymer tails removed reinjected after correction (default True)\n \n")
+	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = True,	help="Polymer tails reinjected after correction (default True)\n \n")
 	#~ parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
@@ -217,6 +214,7 @@ def main():
 	missmatchAllowed		= 10
 	alpha= options.relative_threshold
 	low= options.low_threshold
+	high= options.high_threshold
 	maximumOccurence		= options.maximum_occurence
 	subsambleAnchor		= options.subsamble_anchor
 	debug_mode		= options.DEBUG
@@ -238,7 +236,7 @@ def main():
 		if not os.path.exists(OUT_LOG_FILES):
 			os.mkdir(OUT_LOG_FILES)
 		parametersLog = open(OUT_DIR + "/ParametersUsed.txt", 'w');
-		parametersLog.write("kSize:%s	k-mer_solidity:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s maximum_occurence:%s subsample_anchor:%s\n " %(kSize, min_cov,aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor))
+		parametersLog.write("kSize:%s	k-mer_solidity:%s	alpha:%s	low_threshold:%s	high_threshold:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s maximum_occurence:%s subsample_anchor:%s \n " %(kSize, min_cov,alpha,low,high, aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor))
 		parametersLog.close()
 
 		print("Results will be stored in: ", OUT_DIR)
@@ -317,7 +315,7 @@ def main():
 		if(not clean_homopolymer):
 			cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
 		else:
-			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 3 "+OUT_DIR + "/Arecover "
+			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 10 "+OUT_DIR + "/Arecover "
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
 		fileCase = 2
@@ -339,7 +337,7 @@ def main():
 	#						   Graph construction and cleaning
 	# ------------------------------------------------------------------------
 	t = time.time()
-	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low, OUT_LOG_FILES,bgreatArg)
+	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low,high, OUT_LOG_FILES,bgreatArg)
 	if(poly_injection):
 		cmd=Bct_INSTDIR+"/recover_tail "+OUT_DIR + "/reads_corrected.fa "+ OUT_DIR + "/Arecover "+OUT_DIR + "/reads_corrected_final.fa"
 		printCommand("\t\t\t"+cmd)
