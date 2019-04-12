@@ -29,99 +29,153 @@ string main_nuc(const string& str){
 }
 
 
-string clean_prefix(string str,uint min_length,uint max_missmatch,string& output){
+
+pair<string,string> clean_prefix(string str,uint min_length,uint max_missmatch,string output){
+	//~ return  {str,output};
+	//~ cout<<"cp"<<endl;
+//~ cout<<min_length<<endl;
 	char c(str[0]);
 	if(c!='A' and c!='T'){
 		if(max_missmatch==0){
-			return str;
+			return {str,output};
 		}else{
-			return clean_prefix(str,min_length,max_missmatch-1,output);
+			auto rec(clean_prefix(str.substr(1),min_length,max_missmatch-1,output));
+			if(rec.first.size()==str.size()-1){
+				return {str,output};
+			}else{
+				return {rec.first,c+rec.second};
+			}
 		}
 	}
 	uint prefix_length(1);
 	uint i(1);
 	uint miss(0);
-	uint con_match(0);
+	uint con_match(1);
 
 	for(;i< str.size();++i){
+		prefix_length++;
 		if(str[i]==c){
-			prefix_length++;
 			con_match++;
 		}else{
-			con_match=0;
 			if(++miss>max_missmatch){
 				break;
 			}
+			con_match=1;
 		}
 	}
 	if(con_match<5){
-		prefix_length-=con_match+1;
+		//~ cout<<"remove first macthes"<<endl;
+		prefix_length-=(con_match+1);
+	}else{
+		prefix_length--;
+		//~ cout<<"keep first macthes"<<endl;
 	}
 	if(prefix_length>min_length){
-		output+=main_nuc(str.substr(0,i));
-		str=str.substr(i);
+		output+=main_nuc(str.substr(0,prefix_length));
+		str=str.substr(prefix_length);
 	}
 	if(str.size()==0){
 		str+=output[0];
 		output=output.substr(1);
 	}
-	return str;
+	return {str,output};
+}
+
+
+uint count_upper_case(const string& str){
+	int res(0);
+	for(uint i(0); i< str.size(); ++i){
+		switch(str[i]){
+			//~ case 'a':break;
+			case 'A':++res;break;
+			//~ case 'c':break;
+			case 'C':++res;break;
+			//~ case 'g':break;
+			case 'G':++res;break;
+			//~ case 't':break;
+			case 'T':++res;break;
+			//~ default: return res;
+		}
+	}
+	return res;
 }
 
 
 
-string clean_suffix(string str,uint min_length,uint max_missmatch,string& output){
+pair<string,string> clean_suffix(string str, uint min_length, uint max_missmatch,  string output){
+	//~ return  {str,output};
+	//~ cout<<"cs"<<endl;
 	uint j(1);
 	uint suffix_length(1);
 	uint miss(0);
-	uint con_match(0);
+	uint con_match(1);
 	char c=(str[str.size()-1]);
 	if(c!='A' and c!='T'){
 		if(max_missmatch==0){
-			return str;
+			return {str,output};
 		}else{
-			return clean_suffix(str,min_length,max_missmatch-1,output);
-		}
-	}
-	for(;j< str.size();++j){
-		if(str[str.size()-1-j]==c){
-			suffix_length++;
-			con_match++;
-		}else{
-			con_match=0;
-			if(++miss>max_missmatch){
-				break;
+			auto rec(clean_suffix(str.substr(0,str.size()-1),min_length,max_missmatch-1,output));
+			if(rec.first.size()==str.size()-1){
+				return {str,output};
+			}else{
+				return {rec.first,rec.second+c};
 			}
 		}
 	}
+	for(;j< str.size();++j){
+		suffix_length++;
+		if(str[str.size()-1-j]==c){
+			con_match++;
+		}else{
+			if(++miss>max_missmatch){
+				break;
+			}
+			con_match=1;
+		}
+	}
+	//~ cout<<"suffix length"<<endl;
+	//~ cout<<suffix_length<<endl;
 	if(con_match<5){
-		suffix_length-=con_match+1;
+		//~ cout<<"remove last macthes"<<endl;
+		suffix_length-=(con_match+1);
+	}else{
+		suffix_length--;
+		//~ cout<<"keep last macthes"<<endl;
 	}
+	//~ cout<<"suffix length"<<endl;
+	//~ cout<<suffix_length<<endl;
+
 	if(suffix_length>min_length){
-		output+=str.substr(str.size()-j);
-		str=str.substr(0,str.size()-j);
+		output+=str.substr(str.size()-suffix_length);
+		str=str.substr(0,str.size()-suffix_length);
 	}
+	//~ cout<<str<<endl;
 
 	if(str.size()==0){
 		str+=output[0];
 		output=output.substr(1);
 	}
-
-	return str;
+	//~ cout<<"output"<<output<<endl;
+	return  {str,output};
 }
 
 
 
-string clean_homo(string str, uint min_length, uint max_missmatch, string& output){
-	//~ cout<<"go"<<endl;
-	str=clean_prefix(str,min_length,max_missmatch,output);
-	output+="$";
+pair<string,string> clean_homo(string& str, uint min_length, uint max_missmatch){
 	if(str.size()<min_length){
-		return str;
+		return {str, ""};
 	}
-	str=clean_suffix(str,min_length,max_missmatch,output);
-	return str;
+	//~ cout<<"CH**********************************************************************"<<endl;
+	string output;
+	auto pair=clean_prefix(str,min_length,max_missmatch,output);
+	pair.second+="$";
+	if(pair.first.size()<min_length){
+		return pair;
+	}
+	auto pair2=clean_suffix(pair.first,min_length,max_missmatch,pair.second);
+	return pair2;
 }
+
 
 
 string getLineFasta(ifstream* in){
@@ -135,6 +189,7 @@ string getLineFasta(ifstream* in){
 	}
 	return result;
 }
+
 
 
 void clean(string& str){
@@ -163,7 +218,7 @@ int main(int argc, char ** argv){
 	}
 	string input(argv[1]);
 	bool cleaning(true);
-	uint min_size(0);
+	uint min_size(10);
 	string out_file("clean_reads.fa");
 	string recover_file("Arecover");
 	if(argc>2){
@@ -182,22 +237,34 @@ int main(int argc, char ** argv){
 	ofstream out_backup(recover_file);
 	ofstream out_clean(out_file);
 	string tmp_output;
+	uint i(0);
 	while(not in.eof()){
 		getline(in,header);
 		char c=in.peek();
 		while(c!='>' and c!=EOF){
 			getline(in,line);
 			sequence+=line;
+			//~ line="";
 			c=in.peek();
 		}
 		//WE CLEAN THE SEQ
+
 		clean(sequence);
 		if(sequence.size()>5){
-			sequence=clean_homo(sequence,min_size,0,tmp_output);
-			out_backup<<tmp_output<<"\n";
+			auto pair=clean_homo(sequence,min_size,1);
+			//~ if(pair.first.size()<sequence.size() and pair.first.size()>min_size){
+				//~ pair=clean_homo(pair.first,min_size,1);
+			//~ }
+			out_backup<<pair.second<<"\n";
 			tmp_output="";
-			out_clean<<header<<'\n'<<sequence<<"\n";
-			sequence="";
+			out_clean<<header<<'\n'<<pair.first<<"\n";
+			//~ if(count_upper_case(line)!=pair.first.size() and pair.first.size()>1 ){
+				//~ cout<<count_upper_case(line)<<" "<<pair.first.size()<<endl;
+				//~ cout<<line<<endl;
+				//~ cout<<pair.first<<endl;
+				//~ cin.get();
+			//~ }
 		}
+		sequence="";
 	}
 }
