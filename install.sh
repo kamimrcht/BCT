@@ -74,7 +74,7 @@ cp clean_homopoly $folder;
 git clone --recursive https://github.com/GATB/bcalm >>logCompile 2>>logCompile;
 cd bcalm;
 mkdir build; cd build;
-cmake -DKSIZE_LIST="32 64 128" ..  >>logCompile 2>>logCompile;
+cmake -DKSIZE_LIST="32 64" ..  >>logCompile 2>>logCompile;
 make -j $threadNumber >>logCompile 2>>logCompile;
 cp bcalm $folder;
 cd ../..;
@@ -82,8 +82,8 @@ echo PHASE TWO, GRAPH CONSTRUCTION: BCALM;
 
 
 
-git clone https://github.com/Malfoy/BGREAT2 >>logCompile 2>>logCompile;
-cd BGREAT2;
+git clone https://github.com/Malfoy/BGREAT3 >>logCompile 2>>logCompile;
+cd BGREAT3;
 make -j $threadNumber >>logCompile 2>>logCompile;
 cp bgreat $folder;
 cd ..;

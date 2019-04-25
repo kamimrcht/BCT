@@ -1,3 +1,4 @@
+
 # ***************************************************************************
 #
 #							   Bct:
@@ -19,6 +20,8 @@ def printCommand(cmd,pc=True):
 	if (pc and debug_mode!=0):
 		print(cmd,flush=True)
 
+
+
 # get the platform
 def getPlatform():
 	if sys.platform == "linux" or sys.platform == "linux2":
@@ -28,6 +31,7 @@ def getPlatform():
 	else:
 		print("[ERROR] Bct is not compatible with Windows.")
 		sys.exit(1);
+
 
 
 # get the timestamp as string
@@ -49,6 +53,7 @@ def checkReadFiles(readfiles):
 		dieToFatalError("One or more read files do not exist.")
 
 
+
 # check if files written by Bct are present
 def checkWrittenFiles(files):
 	allFilesAreOK = True
@@ -67,11 +72,14 @@ def dieToFatalError (msg):
   sys.exit(1);
 
 
+
 # launch subprocess
 def subprocessLauncher(cmd, argstdout=None, argstderr=None,	 argstdin=None):
 	args = shlex.split(cmd)
 	p = subprocess.Popen(args, stdin = argstdin, stdout = argstdout, stderr = argstderr).communicate()
 	return p
+
+
 
 def printTime(msg, seconds):
 	m, s = divmod(seconds, 60)
@@ -79,13 +87,17 @@ def printTime(msg, seconds):
 	return msg + " %d:%02d:%02d" % (h, m, s)
 
 
+
 def printWarningMsg(msg):
 	print("[Warning] " + msg)
+
 
 
 # ############################################################################
 #			   graph generation with BCALM + BTRIM + BGREAT
 # ############################################################################
+
+
 
 def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solidity, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low,high, OUT_LOG_FILES,bgreatArg):
 	try:
@@ -118,7 +130,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
 			# BTRIM
-			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -a "+str(alpha)+" -l "+str(low)+" -L "+str(high)
+			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -f "+str(high)
 			printCommand("\t\t\t"+cmd)
 			p = subprocessLauncher(cmd, logTipsToWrite, logTipsToWrite)
 			for filename in glob.glob(OUT_DIR + "/out.*"):
@@ -167,29 +179,24 @@ def main():
 	#							 Define allowed options
 	# ------------------------------------------------------------------------
 	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help=" Input fasta read files. Several read files must be concatenated\n \n")
-	parser.add_argument("-x", action="store", dest="paired_readfiles",		type=str,					help=" Input fasta Interleaved paired-end read files. Several read files must be concatenated\n \n")
+	#~ parser.add_argument("-x", action="store", dest="paired_readfiles",		type=str,					help=" Input fasta Interleaved paired-end read files. Several read files must be concatenated\n \n")
 	parser.add_argument('-o', action="store", dest="out_dir",				type=str,	default=os.getcwd(),	help="Path to store the results (default = current directory)")
 	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="Number of cores used (default max)")
 
 	parser.add_argument('-k', action="store", dest="kSize",					type=int,	default = 31,	help="k-mer size (default 31)")
 	parser.add_argument('-s', action="store", dest="min_cov",				type=int,	default = 2,	help="k-mer abundance threshold, k-mers present strictly less than this number of times in the dataset will be discarded (default 2)")
-	parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
-	parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n")
-	parser.add_argument('-L', action="store", dest="high_threshold",				type=int,	default = 20,	help="Unitigs whith abundance superior to L are kept no matter what (default 20)\n")
+	#~ parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
+	#~ parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n")
+	#~ parser.add_argument('-L', action="store", dest="high_threshold",				type=int,	default = 20,	help="Unitigs whith abundance superior to L are kept no matter what (default 20)\n")
 	parser.add_argument('-c', action="store", dest="remove_poly",				type=int,	default = True,	help="Polymer tails removed before correction (default True)\n \n")
 	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = True,	help="Polymer tails reinjected after correction (default True)\n \n")
-	#~ parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 0,	help="unitig Coverage for  cleaning (default auto)\n")
+	parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 2,	help="unitig Coverage for  cleaning (default 2)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
-	#~ parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 10,	help="missmatch allowed in mapping (default 10)")
+	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 10,	help="missmatch allowed in mapping (default 10)")
 	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="(ADVANCED) index one out of i anchors (default 1)")
 	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="(ADVANCED) maximum occurence of an anchor (default 8)\n")
 	parser.add_argument('-d', action="store", dest="DEBUG",				type=int,	default = 0,	help="(ADVANCED) Print command lines\n \n")
-
-
-	#~ parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
-
-
 	# ------------------------------------------------------------------------
 	#				Parse and interpret command line arguments
 	# ------------------------------------------------------------------------
@@ -210,62 +217,40 @@ def main():
 	aSize				= 21
 	nb_cores			= options.nb_cores
 	mappingEffort		= 1000
-	#~ unitigCoverage		= options.unitig_Coverage
-	missmatchAllowed		= 10
-	alpha= options.relative_threshold
-	low= options.low_threshold
-	high= options.high_threshold
+	unitigCoverage		= options.unitig_Coverage
+	missmatchAllowed		= options.missmatch_allowed
+	alpha=0
+	low=0
+	high=0
 	maximumOccurence		= options.maximum_occurence
 	subsambleAnchor		= options.subsamble_anchor
 	debug_mode		= options.DEBUG
 	clean_homopolymer		= options.remove_poly
 	poly_injection		= options.readd_poly
-	# ------------------------------------------------------------------------
-	#				Create output dir and log files
-	# ------------------------------------------------------------------------
-	OUT_DIR = options.out_dir
-	try:
-		if not os.path.exists(OUT_DIR):
-			os.mkdir(OUT_DIR)
-		else:
-			printWarningMsg(OUT_DIR + " directory already exists, Bct will use it.")
+	if(poly_injection):
+		clean_homopolymer=True
 
-		outName = OUT_DIR.split("/")[-1]
-		OUT_DIR = os.path.dirname(os.path.realpath(OUT_DIR)) + "/" + outName
-		OUT_LOG_FILES = OUT_DIR + "/logs"
-		if not os.path.exists(OUT_LOG_FILES):
-			os.mkdir(OUT_LOG_FILES)
-		parametersLog = open(OUT_DIR + "/ParametersUsed.txt", 'w');
-		parametersLog.write("kSize:%s	k-mer_solidity:%s	alpha:%s	low_threshold:%s	high_threshold:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s maximum_occurence:%s subsample_anchor:%s \n " %(kSize, min_cov,alpha,low,high, aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor))
-		parametersLog.close()
 
-		print("Results will be stored in: ", OUT_DIR)
-	except:
-		print("Could not write in out directory 1:", sys.exc_info()[0])
-		dieToFatalError('')
 
 	# ------------------------------------------------------------------------
 	#				  Parse input read options
 	# ------------------------------------------------------------------------
-	errorReadFile=1
-	try:
-		bankBcalm = open(OUT_DIR + "/bankBcalm.txt", 'w');
-	except:
-		print("Could not write in out directory 2:", sys.exc_info()[0])
 
+	errorReadFile=1
+	paired_readfiles=None
 	# check if the given paired-end read files indeed exist
-	if options.paired_readfiles:
-		paired_readfiles = ''.join(options.paired_readfiles)
-		try:
-			paired_readfiles = os.path.abspath(paired_readfiles)
-			checkReadFiles(options.paired_readfiles)
-			errorReadFile *= 0
-		except:
-			paired_readfiles = None
-			errorReadFile *= 1
-	else:
-		paired_readfiles = None
-		errorReadFile *= 1
+	#~ if options.paired_readfiles:
+		#~ paired_readfiles = ''.join(options.paired_readfiles)
+		#~ try:
+			#~ paired_readfiles = os.path.abspath(paired_readfiles)
+			#~ checkReadFiles(options.paired_readfiles)
+			#~ errorReadFile *= 0
+		#~ except:
+			#~ paired_readfiles = None
+			#~ errorReadFile *= 1
+	#~ else:
+		#~ paired_readfiles = None
+		#~ errorReadFile *= 1
 
 	# check if the given single-end read files indeed exist
 	if options.single_readfiles:
@@ -290,6 +275,39 @@ def main():
 	paired = '' if paired_readfiles is None else str(paired_readfiles)
 	single = '' if single_readfiles is None else str(single_readfiles)
 	both = paired + "," + single
+
+
+
+	# ------------------------------------------------------------------------
+	#				Create output dir and log files
+	# ------------------------------------------------------------------------
+	OUT_DIR = options.out_dir
+	try:
+		if not os.path.exists(OUT_DIR):
+			os.mkdir(OUT_DIR)
+		else:
+			printWarningMsg(OUT_DIR + " directory already exists, Bct will use it.")
+
+		outName = OUT_DIR.split("/")[-1]
+		OUT_DIR = os.path.dirname(os.path.realpath(OUT_DIR)) + "/" + outName
+		OUT_LOG_FILES = OUT_DIR + "/logs"
+		if not os.path.exists(OUT_LOG_FILES):
+			os.mkdir(OUT_LOG_FILES)
+		parametersLog = open(OUT_DIR + "/ParametersUsed.txt", 'w');
+		parametersLog.write("kSize:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s	maximum_occurence:%s	subsample_anchor:%s 	unitig_filtering:%s \n " %(kSize, aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor,unitigCoverage))
+		parametersLog.close()
+
+		print("Results will be stored in: ", OUT_DIR)
+	except:
+		print("Could not write in out directory 1:", sys.exc_info()[0])
+		dieToFatalError('')
+
+	try:
+		bankBcalm = open(OUT_DIR + "/bankBcalm.txt", 'w');
+	except:
+		print("Could not write in out directory 2:", sys.exc_info()[0])
+
+
 
 
 	os.chdir(OUT_DIR)
@@ -330,25 +348,26 @@ def main():
 	# ========================================================================
 	#									RUN
 	# ========================================================================
-
-
-
 	# ------------------------------------------------------------------------
 	#						   Graph construction and cleaning
 	# ------------------------------------------------------------------------
 	t = time.time()
-	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low,high, OUT_LOG_FILES,bgreatArg)
+	valuesGraph = graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, "bankBcalm.txt", kSize, min_cov, nb_cores, mappingEffort, missmatchAllowed,aSize,maximumOccurence,subsambleAnchor,alpha,low,unitigCoverage, OUT_LOG_FILES,bgreatArg)
 	if(poly_injection):
 		cmd=Bct_INSTDIR+"/recover_tail "+OUT_DIR + "/reads_corrected.fa "+ OUT_DIR + "/Arecover "+OUT_DIR + "/reads_corrected_final.fa"
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
+		os.remove(OUT_DIR +"/reads_corrected.fa")
+	if(clean_homopolymer):
+		os.remove(OUT_DIR +"/original_reads_single.fa")
+		os.remove(OUT_DIR +"/Arecover")
+
 	print(printTime("Correction took: ", time.time() - t))
-
-
-
-
 
 
 
 if __name__ == '__main__':
 	main()
+
+
+
