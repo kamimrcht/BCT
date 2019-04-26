@@ -11,10 +11,31 @@ using namespace std;
 
 
 
+string most_important_char(const string& str){
+	uint ca(0),ct(0);
+	for(uint i(0);i<str.size();++i){
+		if(str[i]=='A'){
+			++ca;
+		}
+		if(str[i]=='T'){
+			++ct;
+		}
+	}
+	if(ca>ct){
+		string res('A',str.size());
+		return res;
+	}else{
+		string res('T',str.size());
+		return res;
+	}
+}
+
+
+
 string reconstitute(const string& read,const string& harry){
 	for(uint i(0);i<harry.size();++i){
 		if(harry[i]=='$'){
-			return harry.substr(0,i)+read+harry.substr(i+1);
+			return most_important_char(harry.substr(0,i))+read+most_important_char(harry.substr(i+1));
 		}
 	}
 	return read;
