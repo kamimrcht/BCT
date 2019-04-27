@@ -146,7 +146,7 @@ pair<string,string> clean_suffix(string str, uint min_length, uint max_missmatch
 	//~ cout<<suffix_length<<endl;
 
 	if(suffix_length>min_length){
-		output+=str.substr(str.size()-suffix_length);
+		output+=main_nuc(str.substr(str.size()-suffix_length));
 		str=str.substr(0,str.size()-suffix_length);
 	}
 	//~ cout<<str<<endl;

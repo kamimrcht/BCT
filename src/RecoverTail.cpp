@@ -22,10 +22,10 @@ string most_important_char(const string& str){
 		}
 	}
 	if(ca>ct){
-		string res('A',str.size());
+		string res(str.size(),'A');
 		return res;
 	}else{
-		string res('T',str.size());
+		string res(str.size(),'T');
 		return res;
 	}
 }
