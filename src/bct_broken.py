@@ -1,6 +1,4 @@
 
-#The Absolute path where your binaries are
-Bct_INSTDIR = ("/home/malfoy/dev/BCT/bin")
 # ***************************************************************************
 #
 #							   Bct:
