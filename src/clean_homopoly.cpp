@@ -160,12 +160,65 @@ pair<string,string> clean_suffix(string str, uint min_length, uint max_missmatch
 }
 
 
+pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_missmatch){
+	if(str.size()<min_length){
+		return {str,""};
+	}
+	uint ca(0),cc(0),cg(0),ct(0);
+	for(uint i(0);i<min_length;++i){
+		switch(str[i]){
+			case 'A':++ca;break;
+			case 'C':++cc;break;
+			case 'G':++cg;break;
+			default:++ct;break;
+		}
+		if(cc+cg>max_missmatch){
+			return {str,""};
+		}
+	}
+	if(ca>ct){
+		if (ca<min_length-max_missmatch){
+			return {str,""};
+		}
+	}else{
+		if (ct<min_length-max_missmatch){
+			return {str,""};
+		}
+	}
+	uint nuc_to_remove(0);
+	for(uint i(0);i+min_length<str.size();++i){
+		switch(str[i]){
+			case 'A':--ca;break;
+			case 'C':--cc;break;
+			case 'G':--cg;break;
+			default:--ct;break;
+		}
+		switch(str[i+min_length]){
+			case 'A':++ca;break;
+			case 'C':++cc;break;
+			case 'G':++cg;break;
+			default:++ct;break;
+		}
+		if(ca>ct){
+			if (ca<min_length-max_missmatch){
+				break;
+			}
+		}else{
+			if (ct<min_length-max_missmatch){
+				break;
+			}
+		}
+		nuc_to_remove++;
+	}
+	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove)};
+}
+
+
 
 pair<string,string> clean_homo(string& str, uint min_length, uint max_missmatch){
 	if(str.size()<min_length){
 		return {str, ""};
 	}
-	//~ cout<<"CH**********************************************************************"<<endl;
 	string output;
 	auto pair=clean_prefix(str,min_length,max_missmatch,output);
 	pair.second+="$";
@@ -174,6 +227,16 @@ pair<string,string> clean_homo(string& str, uint min_length, uint max_missmatch)
 	}
 	auto pair2=clean_suffix(pair.first,min_length,max_missmatch,pair.second);
 	return pair2;
+}
+
+
+
+pair<string,string> clean_homo2(string& str, uint min_length, uint max_missmatch){
+	auto pair=clean_prefix2(str,min_length,max_missmatch);
+	reverse(pair.first.begin(),pair.first.end());
+	auto pair2=clean_prefix2(pair.first,min_length,max_missmatch);
+	reverse(pair2.first.begin(),pair2.first.end());
+	return {pair2.first,main_nuc(pair.second)+"$"+main_nuc(pair2.second)};
 }
 
 
@@ -244,26 +307,16 @@ int main(int argc, char ** argv){
 		while(c!='>' and c!=EOF){
 			getline(in,line);
 			sequence+=line;
-			//~ line="";
 			c=in.peek();
 		}
 		//WE CLEAN THE SEQ
 
 		clean(sequence);
 		if(sequence.size()>5){
-			auto pair=clean_homo(sequence,min_size,1);
-			//~ if(pair.first.size()<sequence.size() and pair.first.size()>min_size){
-				//~ pair=clean_homo(pair.first,min_size,1);
-			//~ }
+			auto pair=clean_homo2(sequence,min_size,2);
 			out_backup<<pair.second<<"\n";
 			tmp_output="";
 			out_clean<<header<<'\n'<<pair.first<<"\n";
-			//~ if(count_upper_case(line)!=pair.first.size() and pair.first.size()>1 ){
-				//~ cout<<count_upper_case(line)<<" "<<pair.first.size()<<endl;
-				//~ cout<<line<<endl;
-				//~ cout<<pair.first<<endl;
-				//~ cin.get();
-			//~ }
 		}
 		sequence="";
 	}
