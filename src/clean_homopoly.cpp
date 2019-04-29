@@ -210,7 +210,10 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 		}
 		nuc_to_remove++;
 	}
-	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove)};
+	if(nuc_to_remove+min_length==str.size()){
+		nuc_to_remove--;
+	}
+	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length)};
 }
 
 

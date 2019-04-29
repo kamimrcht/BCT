@@ -1,4 +1,6 @@
 
+#The Absolute path where your binaries are
+Bct_INSTDIR = ("/home/malfoy/dev/BCT/bin")
 # ***************************************************************************
 #
 #							   Bct:
@@ -188,12 +190,12 @@ def main():
 	#~ parser.add_argument('-a', action="store", dest="relative_threshold",				type=int,	default = 10,	help="A path a time less covered than its alternative can be removed (default 10)")
 	#~ parser.add_argument('-l', action="store", dest="low_threshold",				type=int,	default = 5,	help="Suppicious patterns with a abundance inferior to l are removed (default 5)\n")
 	#~ parser.add_argument('-L', action="store", dest="high_threshold",				type=int,	default = 20,	help="Unitigs whith abundance superior to L are kept no matter what (default 20)\n")
-	parser.add_argument('-c', action="store", dest="remove_poly",				type=int,	default = True,	help="Polymer tails removed before correction (default True)\n \n")
-	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = True,	help="Polymer tails reinjected after correction (default True)\n \n")
+	parser.add_argument('-c', action="store", dest="remove_poly",				type=int,	default = 1,	help="Polymer tails removed before correction (default True)\n \n")
+	parser.add_argument('-C', action="store", dest="readd_poly",				type=int,	default = 1,	help="Polymer tails reinjected after correction (default True)\n \n")
 	parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 2,	help="unitig Coverage for  cleaning (default 2)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
-	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 10,	help="missmatch allowed in mapping (default 10)")
+	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 20,	help="missmatch allowed in mapping (default 10)")
 	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="(ADVANCED) index one out of i anchors (default 1)")
 	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="(ADVANCED) maximum occurence of an anchor (default 8)\n")
 	parser.add_argument('-d', action="store", dest="DEBUG",				type=int,	default = 0,	help="(ADVANCED) Print command lines\n \n")
@@ -227,9 +229,8 @@ def main():
 	debug_mode		= options.DEBUG
 	clean_homopolymer		= options.remove_poly
 	poly_injection		= options.readd_poly
-	if(poly_injection):
-		clean_homopolymer=True
-
+	if(poly_injection and not clean_homopolymer):
+		poly_injection=0
 
 
 	# ------------------------------------------------------------------------
@@ -333,7 +334,7 @@ def main():
 		if(not clean_homopolymer):
 			cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
 		else:
-			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 10 "+OUT_DIR + "/Arecover "
+			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 21 "+OUT_DIR + "/Arecover "
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
 		fileCase = 2
