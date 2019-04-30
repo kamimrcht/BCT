@@ -160,10 +160,30 @@ pair<string,string> clean_suffix(string str, uint min_length, uint max_missmatch
 }
 
 
+pair<string,string> protect_real_nuc(const string& str,const string& tail, bool polyAtail){
+	uint minpolytail(5);
+	uint current_tail(0);
+	uint nucleotide_to_remove(0);
+	for(uint i(0);i<tail.size();++i){
+		if( (tail[tail.size()-i-1]=='A' and polyAtail) or (tail[tail.size()-i-1]=='T' and not polyAtail) ){
+			current_tail++;
+			if(current_tail>=minpolytail){
+				break;
+			}
+		}else{
+			current_tail=0;
+			nucleotide_to_remove=i+1;
+		}
+	}
+	return{tail.substr(tail.size()-nucleotide_to_remove)+str,tail.substr(0,tail.size()-nucleotide_to_remove)};
+}
+
+
 pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_missmatch){
 	if(str.size()<min_length){
 		return {str,""};
 	}
+	bool polyAtail(false);
 	uint ca(0),cc(0),cg(0),ct(0);
 	for(uint i(0);i<min_length;++i){
 		switch(str[i]){
@@ -177,6 +197,7 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 		}
 	}
 	if(ca>ct){
+		polyAtail=true;
 		if (ca<min_length-max_missmatch){
 			return {str,""};
 		}
@@ -199,7 +220,7 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 			case 'G':++cg;break;
 			default:++ct;break;
 		}
-		if(ca>ct){
+		if(polyAtail){
 			if (ca<min_length-max_missmatch){
 				break;
 			}
@@ -213,6 +234,7 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 	if(nuc_to_remove+min_length==str.size()){
 		nuc_to_remove--;
 	}
+	return protect_real_nuc(str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length),polyAtail);
 	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length)};
 }
 
