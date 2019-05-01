@@ -13,12 +13,12 @@ all: $(EXEC)
 recover_tail:   recover_tail.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-recover_tail.o: RecoverTail.cpp
+recover_tail.o: RecoverTail.cpp zstr.hpp
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 
 clean_homopoly:   clean_homopoly.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-clean_homopoly.o: clean_homopoly.cpp
+clean_homopoly.o: clean_homopoly.cpp zstr.hpp
 	$(CC) -o $@ -c $< $(CFLAGS)

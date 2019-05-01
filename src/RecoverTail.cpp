@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include "zstr.hpp"
+
 
 
 
@@ -70,17 +72,16 @@ int main(int argc, char ** argv){
 	}
 	srand (time(NULL));
 	string header, sequence,line,harry;
-	ifstream inReads(inputReads);
-	ifstream inRecover(inputRecover);
+	istream* inReads;
+	inReads=new zstr::ifstream(inputReads);
+	istream* inRecover;
+	inRecover=new zstr::ifstream(inputRecover);
 	ofstream out(argv[3]);
-	while(not inReads.eof() and not inRecover.eof()){
-		getline(inReads,header);
-		getline(inReads,line);
-		getline(inRecover,harry);
+	while(not inReads->eof() and not inRecover->eof()){
+		getline(*inReads,header);
+		getline(*inReads,line);
+		getline(*inRecover,harry);
 		if(not harry.empty()){
-		//~ cout<<line<<endl;
-		//~ cout<<harry<<endl;
-		//~ cout<<reconstitute(line,harry)<<endl;cin.get();
 			out<<header<<"\n"<<reconstitute(line,harry)<<"\n";
 		}
 	}

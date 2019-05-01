@@ -1,4 +1,5 @@
 
+
 # ***************************************************************************
 #
 #							   Bct:
@@ -179,6 +180,7 @@ def main():
 	#							 Define allowed options
 	# ------------------------------------------------------------------------
 	parser.add_argument("-u", action="store", dest="single_readfiles",		type=str,					help=" Input fasta read files. Several read files must be concatenated\n \n")
+	parser.add_argument('-q', action="store", dest="fastq",				type=int,	default = 0,	help="Input reads are in fastq format")
 	#~ parser.add_argument("-x", action="store", dest="paired_readfiles",		type=str,					help=" Input fasta Interleaved paired-end read files. Several read files must be concatenated\n \n")
 	parser.add_argument('-o', action="store", dest="out_dir",				type=str,	default=os.getcwd(),	help="Path to store the results (default = current directory)")
 	parser.add_argument('-t', action="store", dest="nb_cores",				type=int,	default = 0,	help="Number of cores used (default max)")
@@ -269,8 +271,11 @@ def main():
 		#~ parser.print_usage()
 		parser.print_help()
 		dieToFatalError("Bct requires at least a read file")
-
 	bgreatArg = ""
+	if(options.fastq!=0 or single_readfiles.find(".fastq")!=-1 or single_readfiles.find(".FASTQ")!=-1 or single_readfiles.find(".fq")!=-1 or single_readfiles.find(".FQ")!=-1):
+		bgreatArg +="-q"
+
+
 	paired = '' if paired_readfiles is None else str(paired_readfiles)
 	single = '' if single_readfiles is None else str(single_readfiles)
 	both = paired + "," + single
@@ -332,7 +337,8 @@ def main():
 		if(not clean_homopolymer):
 			cmd="ln -fs " + single_readfiles + " " + OUT_DIR + "/original_reads_single.fa"
 		else:
-			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 21 "+OUT_DIR + "/Arecover "
+			cmd=Bct_INSTDIR+"/clean_homopoly "+single_readfiles +" "+OUT_DIR + "/original_reads_single.fa "+ " 21 "+OUT_DIR + "/Arecover "+bgreatArg
+			bgreatArg=""
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
 		fileCase = 2
@@ -356,7 +362,7 @@ def main():
 		cmd=Bct_INSTDIR+"/recover_tail "+OUT_DIR + "/reads_corrected.fa "+ OUT_DIR + "/Arecover "+OUT_DIR + "/reads_corrected_final.fa"
 		printCommand("\t\t\t"+cmd)
 		p = subprocessLauncher(cmd)
-		os.remove(OUT_DIR +"/reads_corrected.fa")
+		os.rename(OUT_DIR +"/reads_corrected_final.fa",OUT_DIR +"/reads_corrected.fa")
 	if(clean_homopolymer):
 		os.remove(OUT_DIR +"/original_reads_single.fa")
 		os.remove(OUT_DIR +"/Arecover")
@@ -367,6 +373,10 @@ def main():
 
 if __name__ == '__main__':
 	main()
+
+
+
+
 
 
 
