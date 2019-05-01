@@ -18,6 +18,14 @@ More agressive filtering:
 
 With this option the graph will contain less errors but regions seen less than S times may be lost
 
+Disable poly A tail cleaning:
+
+```./Bct.py -u reads.fa -o working_directory -t core_number  -S abundance_threshold -c 0```
+
+Use this option if you do not have polyA tails in your dataset, in meta-genomic for example.
+
+The polyA tail is HIGHLY recommanded for transriptomic data.
+
 Other options are advanced parameters, change them at your own risk
 
 
