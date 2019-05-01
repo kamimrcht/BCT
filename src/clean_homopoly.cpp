@@ -30,58 +30,6 @@ string main_nuc(const string& str){
 
 
 
-pair<string,string> clean_prefix(string str,uint min_length,uint max_missmatch,string output){
-	//~ return  {str,output};
-	//~ cout<<"cp"<<endl;
-//~ cout<<min_length<<endl;
-	char c(str[0]);
-	if(c!='A' and c!='T'){
-		if(max_missmatch==0){
-			return {str,output};
-		}else{
-			auto rec(clean_prefix(str.substr(1),min_length,max_missmatch-1,output));
-			if(rec.first.size()==str.size()-1){
-				return {str,output};
-			}else{
-				return {rec.first,c+rec.second};
-			}
-		}
-	}
-	uint prefix_length(1);
-	uint i(1);
-	uint miss(0);
-	uint con_match(1);
-
-	for(;i< str.size();++i){
-		prefix_length++;
-		if(str[i]==c){
-			con_match++;
-		}else{
-			if(++miss>max_missmatch){
-				break;
-			}
-			con_match=1;
-		}
-	}
-	if(con_match<5){
-		//~ cout<<"remove first macthes"<<endl;
-		prefix_length-=(con_match+1);
-	}else{
-		prefix_length--;
-		//~ cout<<"keep first macthes"<<endl;
-	}
-	if(prefix_length>min_length){
-		output+=main_nuc(str.substr(0,prefix_length));
-		str=str.substr(prefix_length);
-	}
-	if(str.size()==0){
-		str+=output[0];
-		output=output.substr(1);
-	}
-	return {str,output};
-}
-
-
 uint count_upper_case(const string& str){
 	int res(0);
 	for(uint i(0); i< str.size(); ++i){
@@ -102,66 +50,8 @@ uint count_upper_case(const string& str){
 
 
 
-pair<string,string> clean_suffix(string str, uint min_length, uint max_missmatch,  string output){
-	//~ return  {str,output};
-	//~ cout<<"cs"<<endl;
-	uint j(1);
-	uint suffix_length(1);
-	uint miss(0);
-	uint con_match(1);
-	char c=(str[str.size()-1]);
-	if(c!='A' and c!='T'){
-		if(max_missmatch==0){
-			return {str,output};
-		}else{
-			auto rec(clean_suffix(str.substr(0,str.size()-1),min_length,max_missmatch-1,output));
-			if(rec.first.size()==str.size()-1){
-				return {str,output};
-			}else{
-				return {rec.first,rec.second+c};
-			}
-		}
-	}
-	for(;j< str.size();++j){
-		suffix_length++;
-		if(str[str.size()-1-j]==c){
-			con_match++;
-		}else{
-			if(++miss>max_missmatch){
-				break;
-			}
-			con_match=1;
-		}
-	}
-	//~ cout<<"suffix length"<<endl;
-	//~ cout<<suffix_length<<endl;
-	if(con_match<5){
-		//~ cout<<"remove last macthes"<<endl;
-		suffix_length-=(con_match+1);
-	}else{
-		suffix_length--;
-		//~ cout<<"keep last macthes"<<endl;
-	}
-	//~ cout<<"suffix length"<<endl;
-	//~ cout<<suffix_length<<endl;
-
-	if(suffix_length>min_length){
-		output+=main_nuc(str.substr(str.size()-suffix_length));
-		str=str.substr(0,str.size()-suffix_length);
-	}
-	//~ cout<<str<<endl;
-
-	if(str.size()==0){
-		str+=output[0];
-		output=output.substr(1);
-	}
-	//~ cout<<"output"<<output<<endl;
-	return  {str,output};
-}
-
-
 pair<string,string> protect_real_nuc(const string& str,const string& tail, bool polyAtail){
-	uint minpolytail(5);
+	uint minpolytail(4);
 	uint current_tail(0);
 	uint nucleotide_to_remove(0);
 	for(uint i(0);i<tail.size();++i){
@@ -177,6 +67,7 @@ pair<string,string> protect_real_nuc(const string& str,const string& tail, bool 
 	}
 	return{tail.substr(tail.size()-nucleotide_to_remove)+str,tail.substr(0,tail.size()-nucleotide_to_remove)};
 }
+
 
 
 pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_missmatch){
@@ -236,22 +127,6 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 	}
 	return protect_real_nuc(str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length),polyAtail);
 	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length)};
-}
-
-
-
-pair<string,string> clean_homo(string& str, uint min_length, uint max_missmatch){
-	if(str.size()<min_length){
-		return {str, ""};
-	}
-	string output;
-	auto pair=clean_prefix(str,min_length,max_missmatch,output);
-	pair.second+="$";
-	if(pair.first.size()<min_length){
-		return pair;
-	}
-	auto pair2=clean_suffix(pair.first,min_length,max_missmatch,pair.second);
-	return pair2;
 }
 
 
