@@ -195,7 +195,7 @@ def main():
 	parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 2,	help="unitig Coverage for  cleaning (default 2)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
-	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 20,	help="missmatch allowed in mapping (default 10)")
+	#~ parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 20,	help="missmatch allowed in mapping (default 20)")
 	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="(ADVANCED) index one out of i anchors (default 1)")
 	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="(ADVANCED) maximum occurence of an anchor (default 8)\n")
 	parser.add_argument('-d', action="store", dest="DEBUG",				type=int,	default = 0,	help="(ADVANCED) Print command lines\n \n")
@@ -220,7 +220,7 @@ def main():
 	nb_cores			= options.nb_cores
 	mappingEffort		= 1000
 	unitigCoverage		= options.unitig_Coverage
-	missmatchAllowed		= options.missmatch_allowed
+	missmatchAllowed		= 20
 	alpha=0
 	low=0
 	high=0
@@ -297,7 +297,7 @@ def main():
 		OUT_LOG_FILES = OUT_DIR + "/logs"
 		if not os.path.exists(OUT_LOG_FILES):
 			os.mkdir(OUT_LOG_FILES)
-		parametersLog = open(OUT_DIR + "/ParametersUsed.txt", 'w');
+		parametersLog = open(OUT_LOG_FILES + "/ParametersUsed.txt", 'w');
 		parametersLog.write("kSize:%s	aSize:%s	mapping_effort:%s	missmatch_allowed:%s	maximum_occurence:%s	subsample_anchor:%s 	unitig_filtering:%s \n " %(kSize, aSize, mappingEffort,missmatchAllowed,maximumOccurence,subsambleAnchor,unitigCoverage))
 		parametersLog.close()
 
