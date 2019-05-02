@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include "zstr.hpp"
+
 
 
 
@@ -51,6 +53,9 @@ uint count_upper_case(const string& str){
 
 
 pair<string,string> protect_real_nuc(const string& str,const string& tail, bool polyAtail){
+	if(str.size()<3){
+		return {str,tail};
+	}
 	uint minpolytail(4);
 	uint current_tail(0);
 	uint nucleotide_to_remove(0);
@@ -176,11 +181,11 @@ void clean(string& str){
 
 int main(int argc, char ** argv){
 	if(argc<2){
-		cout<<"[Fasta file] (out file) (homo size) (backup file)"<<endl;
+		cout<<"[Fasta file] (out file) (homo size) (backup file) (fastq)"<<endl;
 		exit(0);
 	}
 	string input(argv[1]);
-	bool cleaning(true);
+	bool cleaning(true),fastq_mode(false);
 	uint min_size(10);
 	string out_file("clean_reads.fa");
 	string recover_file("Arecover");
@@ -193,31 +198,46 @@ int main(int argc, char ** argv){
 	if(argc>4){
 		recover_file=((argv[4]));
 	}
+	if(argc>5){
+		fastq_mode=true;
+	}
 
 	srand (time(NULL));
-	string header, sequence,line;
-	ifstream in(input);
-	ofstream out_backup(recover_file);
-	ofstream out_clean(out_file);
-	string tmp_output;
+	string header, sequence,line,useless;
+	istream* in;
+	in=new zstr::ifstream(input);
+	//~ ifstream in(input);
+	ostream* out_backup;
+	ostream* out_clean;
+	out_backup=new zstr::ofstream((recover_file).c_str());
+	out_clean=new zstr::ofstream((out_file).c_str());
+	//~ ofstream out_backup(recover_file);
+	//~ ofstream out_clean(out_file);
 	uint i(0);
-	while(not in.eof()){
-		getline(in,header);
-		char c=in.peek();
-		while(c!='>' and c!=EOF){
-			getline(in,line);
-			sequence+=line;
-			c=in.peek();
+	while(not in->eof()){
+		if(fastq_mode){
+			getline(*in,header);
+			getline(*in,sequence);
+			getline(*in,useless);
+			getline(*in,useless);
+		}else{
+			getline(*in,header);
+			char c=in->peek();
+			while(c!='>' and c!=EOF){
+				getline(*in,line);
+				sequence+=line;
+				c=in->peek();
+			}
 		}
 		//WE CLEAN THE SEQ
-
 		clean(sequence);
 		if(sequence.size()>5){
 			auto pair=clean_homo2(sequence,min_size,2);
-			out_backup<<pair.second<<"\n";
-			tmp_output="";
-			out_clean<<header<<'\n'<<pair.first<<"\n";
+			*out_backup<<pair.second<<"\n";
+			*out_clean<<'>'+header<<'\n'<<pair.first<<"\n";
 		}
 		sequence="";
 	}
+	out_backup->flush();
+	out_clean->flush();
 }
