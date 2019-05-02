@@ -53,9 +53,9 @@ uint count_upper_case(const string& str){
 
 
 pair<string,string> protect_real_nuc(const string& str,const string& tail, bool polyAtail){
-	if(str.size()<3){
-		return {str,tail};
-	}
+	//~ if(str.size()<2){
+		//~ return {str,tail};
+	//~ }
 	uint minpolytail(4);
 	uint current_tail(0);
 	uint nucleotide_to_remove(0);
