@@ -186,7 +186,7 @@ int main(int argc, char ** argv){
 	}
 	string input(argv[1]);
 	bool cleaning(true),fastq_mode(false);
-	uint min_size(10);
+	uint min_size(21);
 	string out_file("clean_reads.fa");
 	string recover_file("Arecover");
 	if(argc>2){
@@ -232,7 +232,7 @@ int main(int argc, char ** argv){
 		//WE CLEAN THE SEQ
 		clean(sequence);
 		if(sequence.size()>5){
-			auto pair=clean_homo2(sequence,min_size,2);
+			auto pair=clean_homo2(sequence,min_size,3);
 			*out_backup<<pair.second<<"\n";
 			*out_clean<<'>'+header<<'\n'<<pair.first<<"\n";
 		}
