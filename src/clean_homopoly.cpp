@@ -138,10 +138,13 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 
 pair<string,string> clean_homo2(string& str, uint min_length, uint max_missmatch){
 	auto pair=clean_prefix2(str,min_length,max_missmatch);
-	reverse(pair.first.begin(),pair.first.end());
-	auto pair2=clean_prefix2(pair.first,min_length,max_missmatch);
+	reverse(str.begin(),str.end());
+	auto pair2=clean_prefix2(str,min_length,max_missmatch);
 	reverse(pair2.first.begin(),pair2.first.end());
-	return {pair2.first,main_nuc(pair.second)+"$"+main_nuc(pair2.second)};
+	if(pair.second.size()>pair2.second.size()){
+		return {pair.first,main_nuc(pair.second)+"$"};
+	}
+	return {pair2.first,"$"+main_nuc(pair2.second)};
 }
 
 
