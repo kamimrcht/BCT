@@ -53,10 +53,7 @@ uint count_upper_case(const string& str){
 
 
 pair<string,string> protect_real_nuc(const string& str,const string& tail, bool polyAtail){
-	//~ if(str.size()<2){
-		//~ return {str,tail};
-	//~ }
-	uint minpolytail(4);
+	uint minpolytail(5);
 	uint current_tail(0);
 	uint nucleotide_to_remove(0);
 	for(uint i(0);i<tail.size();++i){
@@ -70,6 +67,9 @@ pair<string,string> protect_real_nuc(const string& str,const string& tail, bool 
 			nucleotide_to_remove=i+1;
 		}
 	}
+	//~ cout<<"PRN"<<endl;
+	//~ cout<<tail.substr(tail.size()-nucleotide_to_remove)+str<<endl;
+	//~ cout<<tail.substr(0,tail.size()-nucleotide_to_remove)<<endl;
 	return{tail.substr(tail.size()-nucleotide_to_remove)+str,tail.substr(0,tail.size()-nucleotide_to_remove)};
 }
 
@@ -130,6 +130,8 @@ pair<string,string> clean_prefix2(const string& str, uint min_length, uint max_m
 	if(nuc_to_remove+min_length==str.size()){
 		nuc_to_remove--;
 	}
+	//~ cout<<str.substr(nuc_to_remove+min_length)<<endl;
+	//~ cout<<str.substr(0,nuc_to_remove+min_length)<<endl;
 	return protect_real_nuc(str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length),polyAtail);
 	return{str.substr(nuc_to_remove+min_length),str.substr(0,nuc_to_remove+min_length)};
 }
@@ -140,11 +142,24 @@ pair<string,string> clean_homo2(string& str, uint min_length, uint max_missmatch
 	auto pair=clean_prefix2(str,min_length,max_missmatch);
 	reverse(str.begin(),str.end());
 	auto pair2=clean_prefix2(str,min_length,max_missmatch);
-	reverse(pair2.first.begin(),pair2.first.end());
-	if(pair.second.size()>pair2.second.size()){
+	if(pair2.second.empty()){
+		//~ cout<<"p1"<<endl;
 		return {pair.first,main_nuc(pair.second)+"$"};
 	}
-	return {pair2.first,"$"+main_nuc(pair2.second)};
+	if(pair.second.empty()){
+		reverse(pair2.first.begin(),pair2.first.end());
+		return {pair2.first,"$"+main_nuc(pair2.second)};
+	}
+	if(pair.second.size()<pair2.second.size()){
+		//~ cout<<"p2"<<endl;
+		return {pair.first,main_nuc(pair.second)+"$"};
+	}else{
+		//~ cout<<"s1"<<endl;
+		reverse(pair2.first.begin(),pair2.first.end());
+		return {pair2.first,"$"+main_nuc(pair2.second)};
+	}
+	//~ cout<<"p3"<<endl;
+	return {pair.first,main_nuc(pair.second)+"$"};
 }
 
 
@@ -190,7 +205,7 @@ int main(int argc, char ** argv){
 	string input(argv[1]);
 	bool cleaning(true),fastq_mode(false);
 	uint min_size(21);
-	string out_file("clean_reads.fa");
+	string out_file("clean_reads.fa.gz");
 	string recover_file("Arecover");
 	if(argc>2){
 		out_file=((argv[2]));
@@ -235,12 +250,17 @@ int main(int argc, char ** argv){
 		//WE CLEAN THE SEQ
 		clean(sequence);
 		if(sequence.size()>5){
+			//~ cout<<sequence<<endl;
 			auto pair=clean_homo2(sequence,min_size,3);
 			*out_backup<<pair.second<<"\n";
 			*out_clean<<'>'+header<<'\n'<<pair.first<<"\n";
+			//~ cout<<pair.first<<endl;
 		}
 		sequence="";
 	}
 	out_backup->flush();
 	out_clean->flush();
+	delete(out_backup);
+	delete(out_clean);
+	delete(in);
 }

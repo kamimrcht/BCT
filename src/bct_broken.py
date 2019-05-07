@@ -1,5 +1,4 @@
 
-
 # ***************************************************************************
 #
 #							   Bct:
@@ -195,7 +194,7 @@ def main():
 	parser.add_argument('-S', action="store", dest="unitig_Coverage",				type=int,	default = 2,	help="unitig Coverage for  cleaning (default 2)\n")
 	#~ parser.add_argument('-a', action="store", dest="aSize",	type=int,	default = 21,	help="an integer, Size of the anchor to use (default 21)")
 	#~ parser.add_argument('-e', action="store", dest="mapping_Effort",				type=int,	default = 1000,	help="Anchors to test for mapping ")
-	#~ parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 20,	help="missmatch allowed in mapping (default 20)")
+	parser.add_argument('-m', action="store", dest="missmatch_allowed",				type=int,	default = 40,	help="minimal percent read mapped (default 40)")
 	parser.add_argument('-i', action="store", dest="subsamble_anchor",				type=int,	default = 1,	help="(ADVANCED) index one out of i anchors (default 1)")
 	parser.add_argument('-n', action="store", dest="maximum_occurence",				type=int,	default = 8,	help="(ADVANCED) maximum occurence of an anchor (default 8)\n")
 	parser.add_argument('-d', action="store", dest="DEBUG",				type=int,	default = 0,	help="(ADVANCED) Print command lines\n \n")
@@ -220,7 +219,7 @@ def main():
 	nb_cores			= options.nb_cores
 	mappingEffort		= 1000
 	unitigCoverage		= options.unitig_Coverage
-	missmatchAllowed		= 20
+	missmatchAllowed		= options.missmatch_allowed
 	alpha=0
 	low=0
 	high=0
@@ -268,7 +267,6 @@ def main():
 		errorReadFile *= 1
 
 	if errorReadFile:
-		#~ parser.print_usage()
 		parser.print_help()
 		dieToFatalError("Bct requires at least a read file")
 	bgreatArg = ""
@@ -345,7 +343,6 @@ def main():
 		bankBcalm.write(OUT_DIR + "/original_reads_single.fa\n")
 		bgreatArg="-u original_reads_single.fa "
 
-	# bankBcalm.write(OUT_DIR + "lost_unitig.fa")
 	bankBcalm.close()
 	os.chdir(Bct_MAIN)
 
@@ -373,10 +370,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-
-
-
-
-
 
