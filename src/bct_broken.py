@@ -130,7 +130,7 @@ def graphConstruction(Bct_MAIN, Bct_INSTDIR, OUT_DIR, fileBcalm, kmerSize, solid
 			#  Graph Cleaning
 			print("\t\t #Graph cleaning... ", flush=True)
 			# BTRIM
-			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(3*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -f "+str(high)
+			cmd=Bct_INSTDIR + "/btt -u out.unitigs.fa -k "+str(kmerSize)+" -t "+str(1*int(kmerSize-1))+" -T 5 -c "+coreUsed+" -o dbg"+str(kmerSize)+".fa -h  8 -f "+str(high)
 			printCommand("\t\t\t"+cmd)
 			p = subprocessLauncher(cmd, logTipsToWrite, logTipsToWrite)
 			for filename in glob.glob(OUT_DIR + "/out.*"):
@@ -370,4 +370,5 @@ def main():
 
 if __name__ == '__main__':
 	main()
+
 
